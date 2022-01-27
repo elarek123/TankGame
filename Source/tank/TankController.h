@@ -17,8 +17,13 @@ public:
 	virtual void BeginPlay() override;
 	// Called to bind functionality to input
 	virtual void SetupInputComponent() override;
+	virtual void Tick(float Deltaseconds) override;
+
 private:
 	void MoveForward(float InAxisValue);
+	void RotateRight(float InAxisValue); 
+	void Fire();
+	void SpecialFire();
 	UPROPERTY()
 	class ATankPawn* TankPawn;
 };
