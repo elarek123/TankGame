@@ -10,9 +10,15 @@
 #include <Components/ArrowComponent.h>
 #include "Cannon.h"
 #include <Math/UnrealMathUtility.h>
+#include <Containers/Array.h>
+#include <Templates/SubclassOf.h>
+#include "GameStructs.h"
 
 
 
+
+bool limit = 0;
+bool count = 1;
 
 // Sets default values
 ATankPawn::ATankPawn()
@@ -44,7 +50,7 @@ ATankPawn::ATankPawn()
 void ATankPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	SetupCannon();
+	SetupCannon(DefaultCannonClass);
 }
 
 // Called every frame
@@ -61,7 +67,7 @@ void ATankPawn::Tick(float DeltaTime)
 		MoveVector.Normalize();
 	}*/
 
-	SetActorLocation(GetActorLocation() + MoveVector * DeltaTime * MoveSpeed);
+	SetActorLocation(GetActorLocation() + MoveVector * DeltaTime * MoveSpeed, true);
 
 	CurrentRotateRightAxis = FMath::FInterpTo(CurrentRotateRightAxis, TargetRotateRightAxis, DeltaTime, MovementSmoothness);
 
@@ -95,25 +101,55 @@ void ATankPawn::SetTurretTargetPosition(FVector& TargetPosition)
 
 void ATankPawn::Fire()
 {
-	if (Cannon)
-		Cannon->Fire();
+	if (CannonPack[CurrentCannonIndex] && CannonPack[CurrentCannonIndex]->GetAmmoParam(count)) {
+		//UE_LOG(LogTank, Verbose, TEXT("Current Ammo: %d"), CannonPack[CurrentCannonIndex]->GetAmmoParam(count))
+		CannonPack[CurrentCannonIndex]->Fire();
+		//UE_LOG(LogTank, Verbose, TEXT("After Fire Ammo: %d"), CannonPack[CurrentCannonIndex]->GetAmmoParam(count))
+	}
 }
 
 void ATankPawn::SpecialFire()
 {
-	if (Cannon)
-		Cannon->SpecialFire();
+	if (CannonPack[CurrentCannonIndex] && CannonPack[CurrentCannonIndex]->GetAmmoParam(count) && CannonPack[CurrentCannonIndex]->GetType() == ECannonType::FireProjectile)
+		CannonPack[CurrentCannonIndex]->SpecialFire();
 }
 
-void ATankPawn::SetupCannon()
-{
-	if (Cannon)
-		Cannon->Destroy();
+void ATankPawn::WeaponSwap()
+{	
+	CannonPack[CurrentCannonIndex]->SetVisibility(false);
+	CurrentCannonIndex = (CurrentCannonIndex + 1) % CurrentCannonNumber;
+	CannonPack[CurrentCannonIndex]->SetVisibility(true);
+}
 
-	FActorSpawnParameters Params;
-	Params.Instigator = this;
-	Params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(DefaultCannonClass, Params);
-	Cannon->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+void ATankPawn::SetupCannon(TSubclassOf<class ACannon> InCannonClass)
+{
+	if (CannonPackNames.Contains(InCannonClass->GetName())) {
+		int CannonIndex;
+		CannonPackNames.Find(InCannonClass->GetName(), CannonIndex);
+		CannonPack[CannonIndex]->ReplenishAmmo();
+		return;
+	}
+	if (CurrentCannonNumber == CannonLimit) {
+
+		//UE_LOG(LogTank, Verbose, TEXT("CannonNumber1 : %d"), CannonPack.Num());
+		CannonPack[CurrentCannonIndex]->Destroy();
+		//UE_LOG(LogTank, Verbose, TEXT("CannonNumber2 : %d"), CannonPack.Num());
+		CannonPack.RemoveAt(CurrentCannonIndex);
+		CannonPackNames.RemoveAt(CurrentCannonIndex);
+		CurrentCannonNumber--;
+	}
+	if (InCannonClass) {
+		FActorSpawnParameters Params;
+		Params.Instigator = this;
+		Params.Owner = this;
+		if (CannonPack.Num() && CurrentCannonIndex < CannonPack.Num())
+			CannonPack[CurrentCannonIndex]->SetVisibility(false);
+		CannonPack.Insert(GetWorld()->SpawnActor<ACannon>(InCannonClass, Params), CurrentCannonIndex);
+		CannonPackNames.Insert(InCannonClass->GetName(), CurrentCannonIndex);
+		CurrentCannonNumber++;
+		CannonPack[CurrentCannonIndex]->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		CannonPack[CurrentCannonIndex]->SetVisibility(true);
+	}
+	UE_LOG(LogTank, Verbose, TEXT("CannonNumber3 : %d"), CannonPack.Num());
 }
 

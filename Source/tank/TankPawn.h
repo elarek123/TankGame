@@ -50,6 +50,23 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
 	TSubclassOf<class ACannon> DefaultCannonClass;
 
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	int CannonLimit = 2;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	int CurrentCannonNumber = 0;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	int CurrentCannonIndex = 0;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	TArray <class ACannon*>  CannonPack;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	TArray <FString>  CannonPackNames;
+
+
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -72,11 +89,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SpecialFire();
 
-private:
-	void SetupCannon();
+	UFUNCTION(BlueprintCallable, Category = "Turret")
+	void WeaponSwap();
 
-	UPROPERTY()
-	class ACannon* Cannon = nullptr;
+	UFUNCTION(BlueprintCallable, Category = "Turret")
+	void SetupCannon(TSubclassOf<class ACannon> InCannonClass);
+
+private:
+
 
 	float TargetMoveForwardAxis = 0;
 	float CurrentMoveForwardAxis = 0;

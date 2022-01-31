@@ -6,6 +6,9 @@
 #include <Components/StaticMeshComponent.h>
 #include <Components/ArrowComponent.h>
 #include "tank.h"
+#include "Projectile.h"
+#include <DrawDebugHelpers.h>
+#include "ActorPoolSubsystem.h"
 
 // Sets default values
 ACannon::ACannon()
@@ -26,16 +29,34 @@ void ACannon::Fire()
 { 
 	if (!bIsReadyToFire)
 		return;
-	bulletcnt--;
+	AmmoCount--;
 	bIsReadyToFire = false;
-	UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), bulletcnt);
+	//UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), bulletcnt);
 	if (Type == ECannonType::FireProjectile) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2, FColor::Green, TEXT("Fire projectile"));
+		UActorPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorPoolSubsystem>();
+		FTransform SpawnTransform(ProjectileSpawnPoint->GetComponentRotation(), ProjectileSpawnPoint->GetComponentLocation(), FVector::OneVector);
+		AProjectile* Projectile = Cast<AProjectile>(Pool->RetreiveActor(ProjectileClass, SpawnTransform));
+		if (Projectile)
+			Projectile->Start();
 	}
 	else if (Type == ECannonType::FireTrace) {
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2, FColor::Green, TEXT("Fire trace"));
+		FHitResult HitResult;
+		FVector TraceStart = ProjectileSpawnPoint->GetComponentLocation();
+		FVector TraceEnd = ProjectileSpawnPoint->GetComponentLocation() + ProjectileSpawnPoint->GetForwardVector() * FireRange;
+		FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
+		TraceParams.bReturnPhysicalMaterial = false;
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams)) {
+			DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Green, false, 0.5, 0, 5);
+			if (HitResult.Actor.IsValid() && HitResult.Component.IsValid(), HitResult.Component->GetCollisionObjectType() == ECC_Destructible)
+				HitResult.Actor->Destroy();
+		}
+		else
+			DrawDebugLine(GetWorld(), TraceStart, HitResult.TraceEnd, FColor::Green, false, 0.5, 0, 5);
+
 	}
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, 1 / FireRate, false);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::Reload, FireRate, false);
 }
 
 
@@ -47,23 +68,27 @@ bool ACannon::IsReadyToFire()
 
 void ACannon::SpecialFire()
 {
+	UE_LOG(LogTank, VeryVerbose, TEXT("Hello pidor"))
 	if (!bIsReadyToFire) {
-		bulletcnt--;
 		SpecialFireLimit = 3;
 		Reload();
 		return;
 	}
+	AmmoCount--;
 	SpecialFireLimit--;
 	if (SpecialFireLimit == 0)
 		bIsReadyToFire = false;
-	UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), SpecialFireLimit);
-	if (Type == ECannonType::FireProjectile) {
+	//UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), SpecialFireLimit);
+	if (Type == ECannonType::FireProjectile) { 
+		
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2, FColor::Green, TEXT("Fire projectile"));
+		UActorPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorPoolSubsystem>();
+		FTransform SpawnTransform(ProjectileSpawnPoint->GetComponentRotation(), ProjectileSpawnPoint->GetComponentLocation(), FVector::OneVector);
+		AProjectile* Projectile = Cast<AProjectile>(Pool->RetreiveActor(ProjectileClass, SpawnTransform));
+		if (Projectile)
+			Projectile->Start();
 	}
-	else if (Type == ECannonType::FireTrace) {
-		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2, FColor::Green, TEXT("Fire trace"));
-	}
-	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::SpecialFire, 1 / FireRate);
+	GetWorld()->GetTimerManager().SetTimer(ReloadTimerHandle, this, &ACannon::SpecialFire, SpecialFireRate, false);
 }
 
 // Called when the game starts or when spawned
@@ -82,8 +107,29 @@ void ACannon::EndPlay(EEndPlayReason::Type EndPlayReason)
 
 void ACannon::Reload()
 {	
-	if(bulletcnt > 0)
-		bIsReadyToFire = true;
+	bIsReadyToFire = true;
 }
 
+void ACannon::SetVisibility(bool bIsVisible)
+{
+	Mesh->SetHiddenInGame(!bIsVisible);
+}
+
+int ACannon::GetAmmoParam(bool factor)
+{
+	if (factor)
+		return AmmoCount;
+	else
+		return AmmoLimit;
+}
+
+void ACannon::ReplenishAmmo()
+{
+	AmmoCount += AmmoBaseNumber;
+}
+
+ECannonType ACannon::GetType()
+{
+	return Type;
+}
 
