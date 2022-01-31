@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include <Components/ArrowComponent.h>
 #include "GameStructs.h"
+#include "Projectile.h"
 #include "Cannon.generated.h"
 
 UCLASS()
@@ -21,7 +22,7 @@ protected:
 	class UArrowComponent* ProjectileSpawnPoint;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
-	float FireRate = 1;
+	float FireRate = 0.7;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	float FireRange = 1000;
@@ -32,8 +33,24 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	ECannonType Type = ECannonType::FireProjectile;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (EditCondition = "Type == ECannonType::FireProjectile", EditConditionHides),  Category = "Fire params")
+	TSubclassOf<class AProjectile> ProjectileClass; 
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	int SpecialFireLimit = 3;
+	 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	float SpecialFireRate = 0.25;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	int AmmoLimit = 10;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	int AmmoCount = 5;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
+	int AmmoBaseNumber = 5;
+
 private:
 	FTimerHandle ReloadTimerHandle;
 	bool bIsReadyToFire = false;
@@ -47,10 +64,13 @@ public:
 	void SpecialFire();
 
 	int bulletcnt = 10;
+	void SetVisibility(bool bIsVisible);
+	int GetAmmoParam(bool factor);
+	void ReplenishAmmo();
+	ECannonType GetType();
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	void Reload();
-
 };

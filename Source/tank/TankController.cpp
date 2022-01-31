@@ -19,6 +19,7 @@ void ATankController::SetupInputComponent() {
 	InputComponent->BindAxis("RotateRight", this, &ATankController::RotateRight);
 	InputComponent->BindAction("Fire", IE_Pressed, this, &ATankController::Fire);
 	InputComponent->BindAction("SpecialFire", IE_Pressed, this, &ATankController::SpecialFire);
+	InputComponent->BindAction("WeaponSwap", IE_Pressed, this, &ATankController::WeaponSwap);
 
 }
 
@@ -61,4 +62,10 @@ void ATankController::SpecialFire()
 {
 	if (TankPawn)
 		TankPawn->SpecialFire();
+}
+
+void ATankController::WeaponSwap()
+{
+	if(TankPawn)
+		TankPawn->WeaponSwap();
 }
