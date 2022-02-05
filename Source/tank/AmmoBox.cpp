@@ -7,7 +7,7 @@
 #include "TankPawn.h"
 #include "tank.h"
 
-// Sets default values
+//
 AAmmoBox::AAmmoBox()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -27,7 +27,7 @@ void AAmmoBox::OnMeshOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* O
 	if (OtherActor == PlayerPawn)
 	{
 		PlayerPawn->SetupCannon(CannonClass);
-		//UE_LOG(LogTank, Verbose, TEXT("CannonClass: %s"), *CannonClass->GetName());
+		UE_LOG(LogTank, Verbose, TEXT("CannonClass: %s"), *CannonClass->GetName());
 		Destroy();
 	}
 }

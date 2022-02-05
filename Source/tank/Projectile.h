@@ -29,6 +29,7 @@ public:
 
 	void Start();
 	virtual void Tick(float DeltaTime) override;
+	void Stop();
 
 protected:
 	UFUNCTION()

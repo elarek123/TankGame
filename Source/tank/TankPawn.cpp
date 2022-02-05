@@ -26,8 +26,6 @@ ATankPawn::ATankPawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Tank Body"));
-	RootComponent = BodyMesh;
 
 	TurretMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Tank Turret"));
 	TurretMesh->SetupAttachment(BodyMesh);
@@ -82,6 +80,7 @@ void ATankPawn::Tick(float DeltaTime)
 	TargetRotation.Roll = CurrentRotation.Roll;
 	TargetRotation.Pitch = CurrentRotation.Pitch;
 	TurretMesh->SetWorldRotation(FMath::RInterpConstantTo(CurrentRotation, TargetRotation, DeltaTime, TurretRotationSmoothness));
+	UE_LOG(LogTank, Verbose, TEXT("Rofl"));
 }
 
 void ATankPawn::MoveForward(float InAxisValue)

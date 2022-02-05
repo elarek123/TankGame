@@ -9,6 +9,7 @@
 #include "Projectile.h"
 #include <DrawDebugHelpers.h>
 #include "ActorPoolSubsystem.h"
+#include "Damageable.h"
 
 // Sets default values
 ACannon::ACannon()
@@ -47,10 +48,18 @@ void ACannon::Fire()
 		FVector TraceEnd = ProjectileSpawnPoint->GetComponentLocation() + ProjectileSpawnPoint->GetForwardVector() * FireRange;
 		FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
 		TraceParams.bReturnPhysicalMaterial = false;
+
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams)) {
 			DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Green, false, 0.5, 0, 5);
 			if (HitResult.Actor.IsValid() && HitResult.Component.IsValid(), HitResult.Component->GetCollisionObjectType() == ECC_Destructible)
 				HitResult.Actor->Destroy();
+			else if (IDamageable* Damageable = Cast<IDamageable>(HitResult.Actor)) {
+				FDamageData DamageData;
+				DamageData.DamageValue = TraceDamage;
+				DamageData.Instigator = GetInstigator();
+				DamageData.DamageMaker = this;
+				Damageable->TakeDamage(DamageData);
+			}
 		}
 		else
 			DrawDebugLine(GetWorld(), TraceStart, HitResult.TraceEnd, FColor::Green, false, 0.5, 0, 5);
