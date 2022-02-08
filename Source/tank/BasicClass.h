@@ -11,6 +11,7 @@
 #include "GameStructs.h"
 #include <Components/BoxComponent.h>
 #include "HealthComponent.h"
+#include "AmmoBox.h"
 #include "BasicClass.generated.h"
 
 UCLASS()
@@ -27,32 +28,52 @@ public:
 protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
-		class UStaticMeshComponent* BodyMesh;
+	class UStaticMeshComponent* BodyMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
-		class UStaticMeshComponent* TurretMesh;
+	class UStaticMeshComponent* TurretMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		class UArrowComponent* CannonSpawnPoint;
+	class UArrowComponent* CannonSpawnPoint;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		class UBoxComponent* HitCollider;
+	class UArrowComponent* AmmoBoxSpawnPoint;
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-		class UHealthComponent* HealthComponent;
+	class UBoxComponent* HitCollider;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UHealthComponent* HealthComponent;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UParticleSystemComponent* DestroyEffect;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UAudioComponent* AudioDestroyEffect;
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
-		float TurretRotationSmoothness = 0.1;
+	float TurretRotationSmoothness = 0.1;
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
-		TSubclassOf<class ACannon> DefaultCannonClass;
+	TSubclassOf<class ACannon> DefaultCannonClass;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	TArray <class ACannon*>  CannonPack;
+
+	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
+	float DestroyRate = 0.75;
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Health")
-		void OnHealthChanged(float Damage);
+	void OnHealthChanged(float Damage);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Health")
-		void OnDie();
+	void OnDie();
 
+	void Destroying();
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo Box")
+	TSubclassOf<class AAmmoBox> Ammo_Box;
+
+	FTimerHandle ReloadTimerHandle;
 
 
 

@@ -80,7 +80,7 @@ void ATankPawn::Tick(float DeltaTime)
 	TargetRotation.Roll = CurrentRotation.Roll;
 	TargetRotation.Pitch = CurrentRotation.Pitch;
 	TurretMesh->SetWorldRotation(FMath::RInterpConstantTo(CurrentRotation, TargetRotation, DeltaTime, TurretRotationSmoothness));
-	UE_LOG(LogTank, Verbose, TEXT("Rofl"));
+	//UE_LOG(LogTank, Verbose, TEXT("Rofl"));
 }
 
 void ATankPawn::MoveForward(float InAxisValue)
@@ -93,7 +93,7 @@ void ATankPawn::RotateRight(float InAxisValue)
 	TargetRotateRightAxis = InAxisValue;
 }
 
-void ATankPawn::SetTurretTargetPosition(FVector& TargetPosition)
+void ATankPawn::SetTurretTargetPosition(const FVector& TargetPosition)
 {
 	TurretTargetPosition = TargetPosition;
 }
@@ -107,9 +107,14 @@ void ATankPawn::Fire()
 	}
 }
 
+FVector ATankPawn::GetTurretForwardVector()
+{
+	return TurretMesh->GetForwardVector();
+}
+
 void ATankPawn::SpecialFire()
 {
-	if (CannonPack[CurrentCannonIndex] && CannonPack[CurrentCannonIndex]->GetAmmoParam(count) && CannonPack[CurrentCannonIndex]->GetType() == ECannonType::FireProjectile)
+	if (CannonPack[CurrentCannonIndex] && CannonPack[CurrentCannonIndex]->GetAmmoParam(count) > 0 && CannonPack[CurrentCannonIndex]->GetType() == ECannonType::FireProjectile)
 		CannonPack[CurrentCannonIndex]->SpecialFire();
 }
 
@@ -149,6 +154,6 @@ void ATankPawn::SetupCannon(TSubclassOf<class ACannon> InCannonClass)
 		CannonPack[CurrentCannonIndex]->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		CannonPack[CurrentCannonIndex]->SetVisibility(true);
 	}
-	UE_LOG(LogTank, Verbose, TEXT("CannonNumber3 : %d"), CannonPack.Num());
+	//UE_LOG(LogTank, Verbose, TEXT("CannonNumber3 : %d"), CannonPack.Num());
 }
 

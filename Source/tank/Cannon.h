@@ -7,6 +7,9 @@
 #include <Components/ArrowComponent.h>
 #include "GameStructs.h"
 #include "Projectile.h"
+#include <Components/AudioComponent.h>
+#include <Camera/CameraShakeBase.h>
+#include <GameFramework/ForceFeedbackEffect.h>
 #include "Cannon.generated.h"
 
 UCLASS()
@@ -20,6 +23,12 @@ protected:
 
 	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
 	class UArrowComponent* ProjectileSpawnPoint;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UParticleSystemComponent* ShootEffect;
+
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
+	class UAudioComponent* AudioEffect;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	float FireRate = 0.7;
@@ -40,7 +49,7 @@ protected:
 	int SpecialFireLimit = 3;
 	 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
-	float SpecialFireRate = 0.25;
+	float SpecialFireRate = 0.5;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	int AmmoLimit = 10;
@@ -54,8 +63,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
 	float TraceDamage = 1;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects")
+	class UForceFeedbackEffect* ShootForceEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects")
+	TSubclassOf<class UCameraShakeBase> ShootShake;
+
 private:
+
 	FTimerHandle ReloadTimerHandle;
+
 	bool bIsReadyToFire = false;
 
 public:

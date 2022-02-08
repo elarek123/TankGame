@@ -47,11 +47,16 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
 	int CurrentCannonIndex = 0;
 
-	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
-	TArray <class ACannon*>  CannonPack;
+	
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
 	TArray <FString>  CannonPackNames;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Move params", Meta = (MakeEditWidget = true))
+	TArray<FVector> PatrollingPoints;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Move params")
+	float MovementAccuracy = 50;
 
 
 
@@ -69,7 +74,7 @@ public:
 	void RotateRight(float InAxisValue);
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
-	void SetTurretTargetPosition(FVector& TargetPosition);
+	void SetTurretTargetPosition(const FVector& TargetPosition);
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SpecialFire();
@@ -80,9 +85,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SetupCannon(TSubclassOf<class ACannon> InCannonClass);
 
-
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void Fire();
+
+	UFUNCTION(BlueprintPure, Category = "AI|Move params")
+	FVector GetTurretForwardVector();
+
+	UFUNCTION(BlueprintPure, Category = "AI|Move params")
+	TArray<FVector> GetPatrollingPoints() {
+		return PatrollingPoints; 
+	};
+
+	UFUNCTION(BlueprintPure, Category = "AI|Move params")
+	float GetMovementAccuracy() {
+		return MovementAccuracy;
+	};
 
 
 private:

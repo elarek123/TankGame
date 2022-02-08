@@ -6,6 +6,8 @@
 #include "ActorPoolSubsystem.h"
 #include "Damageable.h"
 #include "GameStructs.h"
+#include <Particles/ParticleSystemComponent.h>
+#include <Components/AudioComponent.h>
 
 // Sets default values
 AProjectile::AProjectile()
@@ -19,6 +21,13 @@ AProjectile::AProjectile()
 	Mesh->SetupAttachment(RootComponent);
 	Mesh->OnComponentHit.AddDynamic(this, &AProjectile::OnMeshHit);
 	RootComponent = Mesh;
+
+	HitEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Hit Effect"));
+	HitEffect->SetupAttachment(Mesh);
+
+	AudioHitEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio Effect"));
+	AudioHitEffect->SetupAttachment(Mesh);
+
 }
 
 void AProjectile::Start()
@@ -63,7 +72,7 @@ void AProjectile::Stop()
 
 void AProjectile::OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
 {
-	UE_LOG(LogTank, Warning, TEXT("Projectile %s collided with %s"), *GetName(), *OtherActor->GetName());
+	//UE_LOG(LogTank, Warning, TEXT("Projectile %s collided with %s"), *GetName(), *OtherActor->GetName());
 
 	if (OtherActor == GetInstigator()) {
 		Stop();
@@ -78,6 +87,8 @@ void AProjectile::OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AAc
 		DamageData.Instigator = GetInstigator();
 		DamageData.DamageMaker = this;
 		Damageable->TakeDamage(DamageData);
+		HitEffect->Activate();
+		AudioHitEffect->Play();
 	}
 	Stop();
 }
