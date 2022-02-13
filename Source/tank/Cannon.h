@@ -51,6 +51,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire params")
 	int AmmoBaseNumber = 5;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Damage")
+	float TraceDamage = 1;
+
 private:
 	FTimerHandle ReloadTimerHandle;
 	bool bIsReadyToFire = false;

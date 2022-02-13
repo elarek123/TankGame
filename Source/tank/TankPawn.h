@@ -4,11 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "BasicClass.h"
 #include "TankPawn.generated.h"
 
 
 UCLASS()
-class TANK_API ATankPawn : public APawn
+class TANK_API ATankPawn : public ABasicClass
 {
 	GENERATED_BODY()
 
@@ -18,19 +19,12 @@ public:
 
 protected:
 
-	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
-	class UStaticMeshComponent* BodyMesh;
-
-	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
-	class UStaticMeshComponent* TurretMesh;
 
 	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
 	class USpringArmComponent* SpringArm;
 
 	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
 	class UCameraComponent* Camera;
-	UPROPERTY(VisibleDefaultsOnly, BlueprintReadWrite, Category = "Components")
-	class UArrowComponent* CannonSpawnPoint;
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Movement | Speed")
 	float RotationSpeed = 100.f;
@@ -43,12 +37,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Movement | Speed")
 	float RotationSmoothness = 0.2;
-
-	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
-	float TurretRotationSmoothness = 0.1;
-
-	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
-	TSubclassOf<class ACannon> DefaultCannonClass;
 
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
 	int CannonLimit = 2;
@@ -84,9 +72,6 @@ public:
 	void SetTurretTargetPosition(FVector& TargetPosition);
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
-	void Fire();
-
-	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SpecialFire();
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
@@ -94,6 +79,11 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void SetupCannon(TSubclassOf<class ACannon> InCannonClass);
+
+
+	UFUNCTION(BlueprintCallable, Category = "Turret")
+	void Fire();
+
 
 private:
 

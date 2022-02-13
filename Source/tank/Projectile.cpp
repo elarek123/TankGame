@@ -4,6 +4,8 @@
 #include "Projectile.h"
 #include "tank.h"
 #include "ActorPoolSubsystem.h"
+#include "Damageable.h"
+#include "GameStructs.h"
 
 // Sets default values
 AProjectile::AProjectile()
@@ -21,9 +23,11 @@ AProjectile::AProjectile()
 
 void AProjectile::Start()
 {
+	PrimaryActorTick.SetTickFunctionEnable(true);
 	StartPosition = GetActorLocation();
+	Mesh->SetHiddenInGame(false);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
-
 // Called when the game starts or when spawned
 
 
@@ -36,8 +40,24 @@ void AProjectile::Tick(float DeltaTime)
 	SetActorLocation(NextPosition, true); 
 	
 	if (FVector::Dist(GetActorLocation(), StartPosition) > FireRange) {
-		UActorPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorPoolSubsystem>();
+		Stop();
+	}
+}
+
+void AProjectile::Stop()
+{
+	PrimaryActorTick.SetTickFunctionEnable(false);
+	Mesh->SetHiddenInGame(true);
+	Mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	UActorPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorPoolSubsystem>();
+	if (Pool->IsActorInPool(this))
+	{
 		Pool->ReturnActor(this);
+	}
+	else
+	{
+		Destroy();
 	}
 }
 
@@ -45,9 +65,20 @@ void AProjectile::OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AAc
 {
 	UE_LOG(LogTank, Warning, TEXT("Projectile %s collided with %s"), *GetName(), *OtherActor->GetName());
 
+	if (OtherActor == GetInstigator()) {
+		Stop();
+		return;
+	}
+
 	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible)
 		OtherActor->Destroy();
-	UActorPoolSubsystem* Pool = GetWorld()->GetSubsystem<UActorPoolSubsystem>();
-	Pool->ReturnActor(this);
+	else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
+		FDamageData DamageData;
+		DamageData.DamageValue = Damage;
+		DamageData.Instigator = GetInstigator();
+		DamageData.DamageMaker = this;
+		Damageable->TakeDamage(DamageData);
+	}
+	Stop();
 }
 
