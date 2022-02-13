@@ -14,6 +14,7 @@
 #include "GameStructs.h"
 #include "tank.h"
 #include "HealthComponent.h"
+#include <DrawDebugHelpers.h>
 
 // Sets default values
 ATurret::ATurret()
@@ -36,8 +37,8 @@ void ATurret::BeginPlay()
 	Super::BeginPlay();
 	FActorSpawnParameters Params;
 	Params.Owner = this;
-	Cannon = GetWorld()->SpawnActor<ACannon>(DefaultCannonClass, Params);
-	Cannon->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+	CannonPack.Add(GetWorld()->SpawnActor<ACannon>(DefaultCannonClass, Params));
+	CannonPack[0]->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
 	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
@@ -50,13 +51,28 @@ void ATurret::BeginPlay()
 
 void ATurret::Targeting()
 {
-	if (IsPlayerInRange())
+	if (FVector::DistSquared(PlayerPawn->GetActorLocation(), GetActorLocation()) > FMath::Square(TargetingRange))
 	{
-		RotateToPlayer();
+		return;
 	}
+	FHitResult HitResult;
+	FVector TraceStart = TurretMesh->GetComponentLocation();
+	FVector TraceEnd = PlayerPawn->GetActorLocation();
+	FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
+	TraceParams.bReturnPhysicalMaterial = false;
 
-	if (CanFire() && Cannon && Cannon->IsReadyToFire() && IsPlayerInRange())
-	{
+	if (!GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, TraceParams) || HitResult.Actor != PlayerPawn) {
+		DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Purple, false, 0.1f, 0, 5);
+		return;
+	}
+	DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Red, false, 0.1f, 0, 5);
+
+	RotateToPlayer();
+	FVector TargetingDir = TurretMesh->GetForwardVector();
+	FVector DirToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
+	DirToPlayer.Normalize();
+	float AimAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(TargetingDir, DirToPlayer)));
+	if (AimAngle <= Accurency) {
 		Fire();
 	}
 }
@@ -70,30 +86,14 @@ void ATurret::RotateToPlayer()
 	TurretMesh->SetWorldRotation(FMath::RInterpConstantTo(CurrRotation, TargetRotation, GetWorld()->GetDeltaSeconds(), TargetingSpeed));
 }
 
-bool ATurret::IsPlayerInRange()
-{
-	return FVector::DistSquared(PlayerPawn->GetActorLocation(), GetActorLocation()) <= FMath::Square(TargetingRange);
-}
-
-bool ATurret::CanFire()
-{
-	FVector TargetingDir = TurretMesh->GetForwardVector();
-	FVector DirToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-	DirToPlayer.Normalize();
-	float AimAngle = FMath::RadiansToDegrees(acosf(FVector::DotProduct(TargetingDir, DirToPlayer)));
-	return AimAngle <= Accurency;
-}
 
 void ATurret::Fire()
 {
-	if (Cannon)
-		Cannon->Fire();
+	if (CannonPack[0])
+		CannonPack[0]->Fire();
 
 }
 
-
-
-// Called every frame
 
 void ATurret::Tick(float DeltaTime)
 {

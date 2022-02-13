@@ -6,6 +6,9 @@
 #include "GameFramework/Actor.h"
 #include "AmmoBox.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSpawnBox, FVector, SpawnLocation);
+
+
 UCLASS()
 class TANK_API AAmmoBox : public AActor
 {

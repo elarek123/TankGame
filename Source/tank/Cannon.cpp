@@ -10,6 +10,8 @@
 #include <DrawDebugHelpers.h>
 #include "ActorPoolSubsystem.h"
 #include "Damageable.h"
+#include <Particles/ParticleSystemComponent.h>
+#include <GameFramework/ForceFeedbackEffect.h>
 
 // Sets default values
 ACannon::ACannon()
@@ -24,13 +26,38 @@ ACannon::ACannon()
 
 	ProjectileSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("Spawn point"));
 	ProjectileSpawnPoint->SetupAttachment(Mesh);
+
+	ShootEffect = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Shoot Effect"));
+	ShootEffect->SetupAttachment(ProjectileSpawnPoint);
+
+	AudioEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio Effect"));
+	AudioEffect->SetupAttachment(ProjectileSpawnPoint);
 }
 
 void ACannon::Fire()
 { 
 	if (!bIsReadyToFire)
 		return;
+	ShootEffect->Activate();
+	AudioEffect->Play();
+	if (GetOwner() == GetWorld()->GetFirstPlayerController()->GetPawn()) {
+		if (ShootForceEffect)
+		{
+			FForceFeedbackParameters shootForceEffectParams;
+			shootForceEffectParams.bLooping = false;
+			shootForceEffectParams.Tag = "shootForceEffectParams";
+			GetWorld()->GetFirstPlayerController()->ClientPlayForceFeedback(ShootForceEffect, shootForceEffectParams);
+		}
+
+		if (ShootShake)
+		{
+			GetWorld()->GetFirstPlayerController()->ClientPlayCameraShake(ShootShake);
+		}
+	}
+
 	AmmoCount--;
+	UE_LOG(LogTank, VeryVerbose, TEXT("Bullet2: %d"), AmmoCount);
+
 	bIsReadyToFire = false;
 	//UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), bulletcnt);
 	if (Type == ECannonType::FireProjectile) {
@@ -76,18 +103,22 @@ bool ACannon::IsReadyToFire()
 }
 
 void ACannon::SpecialFire()
-{
-	UE_LOG(LogTank, VeryVerbose, TEXT("Hello pidor"))
+{	
+	
+	//UE_LOG(LogTank, VeryVerbose, TEXT("Hello pidor"))
 	if (!bIsReadyToFire) {
 		SpecialFireLimit = 3;
 		Reload();
 		return;
 	}
-	AmmoCount--;
+	ShootEffect->Activate();
+	AudioEffect->Play();
+	if(SpecialFireLimit == 1)
+		AmmoCount--;
 	SpecialFireLimit--;
 	if (SpecialFireLimit == 0)
 		bIsReadyToFire = false;
-	//UE_LOG(LogTank, Verbose, TEXT("Bullet: %d"), SpecialFireLimit);
+	UE_LOG(LogTank, VeryVerbose, TEXT("Bullet2: %d"), AmmoCount);
 	if (Type == ECannonType::FireProjectile) { 
 		
 		GEngine->AddOnScreenDebugMessage(INDEX_NONE, 2, FColor::Green, TEXT("Fire projectile"));
