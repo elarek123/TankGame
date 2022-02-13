@@ -9,20 +9,19 @@
 #include <Math/UnrealMathUtility.h>
 #include <GameFramework/Actor.h>
 #include "TankPawn.h"
+#include <Engine/TargetPoint.h>
+#include "tank.h"
 
 void ATankAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	TankPawn = Cast<ATankPawn>(GetPawn());
 	//PawnLocation = TankPawn->GetActorLocation();
-	if (TankPawn)
-		for (const FVector& Point : TankPawn->GetPatrollingPoints())
-			PatrollingPoints.Add(TankPawn->GetActorLocation() + Point);
 }
 
 void ATankAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	TankPawn = Cast<ATankPawn>(GetPawn());
 
 	if (TankPawn) {
 		MoveToNextPoint();
@@ -33,12 +32,13 @@ void ATankAIController::Tick(float DeltaTime)
 
 void ATankAIController::MoveToNextPoint()
 {
+	const TArray<class ATargetPoint*>& PatrollingPoints = TankPawn->GetPatrollingPoints();
 	if (PatrollingPoints.Num() == 0)
 		return;
 
 	TankPawn->MoveForward(1);
 	FVector PawnLocation = TankPawn->GetActorLocation();
-	FVector CurrentPoint = PatrollingPoints[CurrentPatrolPointIndex];
+	FVector CurrentPoint = PatrollingPoints[CurrentPatrolPointIndex]->GetActorLocation();
 	if (FVector::DistSquared(PawnLocation, CurrentPoint) <= FMath::Square(TankPawn->GetMovementAccuracy())) {
 		CurrentPatrolPointIndex++;
 		if (!PatrollingPoints.IsValidIndex(CurrentPatrolPointIndex))
@@ -69,12 +69,15 @@ void ATankAIController::Targeting()
 {
 	APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 	
-
 	if (PlayerPawn) {
+		UE_LOG(LogTank, Verbose, TEXT("rofl"));
 		if (FVector::DistSquared(PlayerPawn->GetActorLocation(), TankPawn->GetActorLocation()) > FMath::Square(TargetingRange))
 		{
+			UE_LOG(LogTank, Verbose, TEXT("rofl1"));
 			return;
 		}
+		UE_LOG(LogTank, Verbose, TEXT("rofl2"));
+
 		FHitResult HitResult;
 		FVector TraceStart = TankPawn->GetActorLocation();
 		FVector TraceEnd = PlayerPawn->GetActorLocation() ;
@@ -82,8 +85,11 @@ void ATankAIController::Targeting()
 		TraceParams.bReturnPhysicalMaterial = false;
 
 		if (!GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams) || HitResult.Actor != PlayerPawn) {
+			UE_LOG(LogTank, Verbose, TEXT("rofl3"));
+			DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Purple, false, 0.1f, 0, 5);
 			return;
 		}
+		DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Red, false, 0.1f, 0, 5);
 
 
 		TankPawn->SetTurretTargetPosition(PlayerPawn->GetActorLocation());

@@ -69,6 +69,7 @@ void ABasicClass::Destroying()
 	for (auto i : CannonPack)
 		i->Destroy();
 	Destroy();
+	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 
 }
 
