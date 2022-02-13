@@ -74,6 +74,11 @@ protected:
 	TSubclassOf<class AAmmoBox> Ammo_Box;
 
 	FTimerHandle ReloadTimerHandle;
+public:
+
+	FVector GetTurretLocation() {
+		return TurretMesh->GetComponentLocation();
+	}
 
 
 

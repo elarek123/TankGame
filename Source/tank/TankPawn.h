@@ -53,7 +53,7 @@ protected:
 	TArray <FString>  CannonPackNames;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Move params", Meta = (MakeEditWidget = true))
-	TArray<FVector> PatrollingPoints;
+	TArray<class ATargetPoint*> PatrollingPoints;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI|Move params")
 	float MovementAccuracy = 50;
@@ -66,6 +66,7 @@ protected:
 public:	 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void MoveForward(float InAxisValue);
@@ -88,11 +89,16 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Turret")
 	void Fire();
 
+	UFUNCTION(BlueprintCallable, Category = "AI|Move params")
+	void SetPatrollingPoints(TArray<class ATargetPoint*>& InPoints) {
+		PatrollingPoints = InPoints;
+	}
+
 	UFUNCTION(BlueprintPure, Category = "AI|Move params")
 	FVector GetTurretForwardVector();
 
 	UFUNCTION(BlueprintPure, Category = "AI|Move params")
-	TArray<FVector> GetPatrollingPoints() {
+	TArray<class ATargetPoint*>& GetPatrollingPoints() {
 		return PatrollingPoints; 
 	};
 
