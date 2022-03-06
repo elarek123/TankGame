@@ -29,18 +29,31 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
 	float FireRange = 1000;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Params")
+	float Mass = 1;
+
 public:	
 	// Sets default values for this actor's properties
 	AProjectile();
 
-	void Start();
+	virtual void Start();
 	virtual void Tick(float DeltaTime) override;
-	void Stop();
+	virtual void Stop();
 
 protected:
 	UFUNCTION()
-	void OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
+	virtual void OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor,
 		class UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult);
+public:
+	void SetMoveSpeed(float InMoveSpeed)
+	{
+		MoveSpeed = InMoveSpeed;
+	}
+
+	float GetMoveSpeed()
+	{
+		return MoveSpeed;
+	}
 private:
 	FVector StartPosition;
 };

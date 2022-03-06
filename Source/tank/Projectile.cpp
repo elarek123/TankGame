@@ -78,9 +78,14 @@ void AProjectile::OnMeshHit(class UPrimitiveComponent* OverlappedComp, class AAc
 		Stop();
 		return;
 	}
+	if (OtherComp->IsSimulatingPhysics()) {
+		FVector Impulse = Mass * MoveSpeed * GetActorForwardVector();
+		OtherComp->AddImpulseAtLocation(Impulse, HitResult.ImpactPoint);
 
-	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible)
+	}
+	if (OtherActor && OtherComp && OtherComp->GetCollisionObjectType() == ECC_Destructible) {
 		OtherActor->Destroy();
+	}
 	else if (IDamageable* Damageable = Cast<IDamageable>(OtherActor)) {
 		FDamageData DamageData;
 		DamageData.DamageValue = Damage;
