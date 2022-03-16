@@ -107,6 +107,12 @@ public:
 		return MovementAccuracy;
 	};
 
+	ACannon* GetCannon();
+
+	UArrowComponent* GetCannonSpawnPoint()
+	{
+		return CannonSpawnPoint;
+	}
 
 private:
 

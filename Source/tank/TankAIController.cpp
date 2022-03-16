@@ -11,6 +11,7 @@
 #include "TankPawn.h"
 #include <Engine/TargetPoint.h>
 #include "tank.h"
+#include "PhysicsProjectile.h"
 
 void ATankAIController::BeginPlay()
 {
@@ -22,7 +23,7 @@ void ATankAIController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	TankPawn = Cast<ATankPawn>(GetPawn());
-
+	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 	if (TankPawn) {
 		MoveToNextPoint();
 		//PawnLocation = TankPawn->GetActorLocation();
@@ -65,9 +66,17 @@ void ATankAIController::MoveToNextPoint()
 
 }
 
+void ATankAIController::CannonTargeting()
+{
+	if (PlayerPawn) {
+		ACannon* Cannon = TankPawn->GetCannon();
+		Cannon->GetActorRotation();
+	}
+}
+
 void ATankAIController::Targeting()
 {
-	APawn* PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	
 	
 	if (PlayerPawn) {
 		UE_LOG(LogTank, Verbose, TEXT("rofl"));
@@ -80,7 +89,7 @@ void ATankAIController::Targeting()
 
 		FHitResult HitResult;
 		FVector TraceStart = TankPawn->GetActorLocation();
-		FVector TraceEnd = PlayerPawn->GetActorLocation() ;
+		FVector TraceEnd = PlayerPawn->GetActorLocation();
 		FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
 		TraceParams.bReturnPhysicalMaterial = false;
 
@@ -99,6 +108,51 @@ void ATankAIController::Targeting()
 		DirToPlayer.Normalize();
 		float AimAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(TargetingDir, DirToPlayer)));
 		if (AimAngle <= Accurency) {
+			if (APhysicsProjectile* PhysicsProjectile = Cast<APhysicsProjectile>(TankPawn->GetCannon()->GetProjectile()->GetDefaultObject()))
+			{
+				float Gravity = PhysicsProjectile->GetGravity();
+				float MoveSpeed = PhysicsProjectile->GetMoveSpeed();
+				float MaxLenght = FMath::Square(MoveSpeed) / Gravity;
+
+				FVector From = TankPawn->GetCannonSpawnPoint()->GetComponentLocation();
+
+				FVector FromWithoutZ = From;
+				FromWithoutZ.Z = 0;
+
+				FVector To = PlayerPawn->GetActorLocation();
+
+				FVector ToWithoutZ = To;
+				ToWithoutZ.Z = 0;
+
+				float X = FVector::Dist(FromWithoutZ, ToWithoutZ);
+				float Y = To.Z - From.Z;
+
+				if (MaxLenght < X)
+				{
+					MoveSpeed = FMath::Sqrt(Gravity * X) + 100;
+					TankPawn->GetCannon()->SetMoveSpeed(MoveSpeed);
+				}
+
+				float Angle = FMath::RadiansToDegrees(FMath::Atan(((FMath::Square(MoveSpeed) + FMath::Sqrt(FMath::Square(FMath::Square(MoveSpeed)) -
+					Gravity * (Gravity * FMath::Square(X) + 2 * FMath::Square(MoveSpeed) * Y))) / (Gravity * X))));
+
+				TankPawn->GetCannon()->SetCannonRotation(Angle);
+
+				FVector Vector = TankPawn->GetTurretForwardVector();
+				Vector.Normalize();
+				Vector *= 100;
+
+				//DrawDebugLine(GetWorld(), From, From + Vector, FColor::Emerald, false, 0.1f, 0, 5);
+
+				FVector Axis = FVector(0, 1, 0);
+
+				Vector = Vector.RotateAngleAxis(Angle, Axis);
+
+				//DrawDebugLine(GetWorld(), From, From + Vector, FColor::Red, false, 0.1f, 0, 5);
+
+				//UE_LOG(LogTanks, Warning, TEXT("%f %f %f"), TankPawn->GetCannon()->GetActorRotation().Roll, TankPawn->GetCannon()->GetActorRotation().Pitch, TankPawn->GetCannon()->GetActorRotation().Yaw);
+
+			}
 			TankPawn->Fire();
 		}
 	}

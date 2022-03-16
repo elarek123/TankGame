@@ -34,9 +34,12 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
-
+	APawn* PlayerPawn;
 
 	void MoveToNextPoint();
 
+	void CannonTargeting();
+
 	void Targeting();
+
 };

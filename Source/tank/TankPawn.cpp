@@ -112,6 +112,11 @@ FVector ATankPawn::GetTurretForwardVector()
 	return TurretMesh->GetForwardVector();
 }
 
+ACannon* ATankPawn::GetCannon()
+{
+	return CannonPack[CurrentCannonIndex];
+}
+
 void ATankPawn::SpecialFire()
 {
 	if (CannonPack[CurrentCannonIndex] && CannonPack[CurrentCannonIndex]->GetAmmoParam(count) > 0 && CannonPack[CurrentCannonIndex]->GetType() == ECannonType::FireProjectile)

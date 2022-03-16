@@ -69,6 +69,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Effects")
 	TSubclassOf<class UCameraShakeBase> ShootShake;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+	float MoveSpeed = 1000;
+
 private:
 
 	FTimerHandle ReloadTimerHandle;
@@ -93,4 +96,24 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	void Reload();
+public:
+	void SetCannonRotation(float Angle)
+	{
+		FRotator DesiredRotation = GetActorRotation();
+		DesiredRotation.Pitch = Angle;
+		SetActorRotation(DesiredRotation);
+	}
+	TSubclassOf<class AProjectile> GetProjectile()
+	{
+		return ProjectileClass;
+	}
+	UArrowComponent* GetProjectileSpawnPoint()
+	{
+		return ProjectileSpawnPoint;
+	}
+	void SetMoveSpeed(float InMoveSpeed)
+	{
+		MoveSpeed = InMoveSpeed;
+	}
+
 };
