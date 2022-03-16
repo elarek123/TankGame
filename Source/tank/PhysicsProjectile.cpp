@@ -61,7 +61,7 @@ void APhysicsProjectile::OnMeshHit(class UPrimitiveComponent* OverlappedComp, cl
 		Params
 	);
 
-	GetWorld()->DebugDrawTraceTag = "Explode Trace";
+	//GetWorld()->DebugDrawTraceTag = "Explode Trace";
 
 	if (bSweepResult)
 	{
