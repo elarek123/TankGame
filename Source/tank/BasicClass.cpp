@@ -35,7 +35,12 @@ ABasicClass::ABasicClass()
 
 	AudioDestroyEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("Audio Effect"));
 	AudioDestroyEffect->SetupAttachment(BodyMesh);
+	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+	HealthBar->SetupAttachment(BodyMesh);
 
+
+	
+	//RootComponent = Widget;
 }
 
 
@@ -71,6 +76,14 @@ void ABasicClass::Destroying()
 	Destroy();
 	GetWorld()->GetTimerManager().ClearTimer(ReloadTimerHandle);
 
+}
+
+void ABasicClass::BeginPlay()
+{
+	Super::BeginPlay();
+	Health = Cast<UHealthBar>(HealthBar->GetWidget());
+	if(Health)
+		Health->SetHealthComponent(HealthComponent);
 }
 
 void ABasicClass::TakeDamage(const FDamageData& DamageData)
