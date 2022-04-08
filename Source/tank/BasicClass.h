@@ -12,6 +12,9 @@
 #include <Components/BoxComponent.h>
 #include "HealthComponent.h"
 #include "AmmoBox.h"
+#include <Components/Widget.h>
+#include <Components/WidgetComponent.h>
+#include "HealthBar.h"
 #include "BasicClass.generated.h"
 
 UCLASS()
@@ -26,6 +29,8 @@ public:
 	virtual void TakeDamage(const FDamageData& DamageData) override;
 
 protected:
+	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
+	class UWidgetComponent* HealthBar;
 
 	UPROPERTY(VisibleDefaultsOnly, BluePrintReadWrite, Category = "Components")
 	class UStaticMeshComponent* BodyMesh;
@@ -79,8 +84,9 @@ public:
 	FVector GetTurretLocation() {
 		return TurretMesh->GetComponentLocation();
 	}
-
-
-
-
+	UHealthComponent* GetHealtComponent() {
+		return HealthComponent;
+	}
+	class UHealthBar* Health;
+	virtual void BeginPlay() override;
 };
