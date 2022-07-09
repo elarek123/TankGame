@@ -20,6 +20,12 @@ void UHealthComponent::TakeDamage(const FDamageData& DamageData)
 	float TakedDamageValue = DamageData.DamageValue;
 	CurrentHealth -= TakedDamageValue;
 
+	if (CurrentHealth > MaxHealth) {
+		CurrentHealth = MaxHealth;
+		if (OnHealthChanged.IsBound())
+			OnHealthChanged.Broadcast(TakedDamageValue);
+	}
+
 	if (CurrentHealth <= 0)
 	{
 		if (OnDie.IsBound())

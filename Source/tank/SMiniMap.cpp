@@ -4,14 +4,16 @@
 #include "Rendering/DrawElements.h"
 #include "Styling/CoreStyle.h"
 #include "SlateOptMacros.h"
+#include "MyCoreStyle.h"
+#include <Kismet/KismetMathLibrary.h>
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SMiniMap::Construct(const FArguments& InArgs)
 {
-	PlayerImage = InArgs._PlayerImage;
 	Obstacles = InArgs._Obstacles;
 	PlayerPos = InArgs._PlayerPos;
 }
+
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 int32 SMiniMap::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometry, const FSlateRect& MyCullingRect, FSlateWindowElementList& OutDrawElements, int32 LayerId, const FWidgetStyle& InWidgetStyle, bool bParentEnabled) const
@@ -26,8 +28,8 @@ int32 SMiniMap::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometr
 	Border.Add(LocalSize * FVector2D(0.f, 0.f));
 
 	FSlateDrawElement::MakeLines(
-		OutDrawElements, 
-		LayerId, 
+		OutDrawElements,
+		LayerId,
 		AllottedGeometry.ToPaintGeometry(),
 		Border
 	);
@@ -46,8 +48,18 @@ int32 SMiniMap::OnPaint(const FPaintArgs& Args, const FGeometry& AllottedGeometr
 		);
 	}
 
-	FSlateBrush Brush;
-	Brush.SetResourceObject(PlayerImage);
+	FSlateBrush Brush = *MyCoreStyle::Get().GetBrush("PlayerImage");
+	FSlateBrush Brush2 = *MyCoreStyle::Get().GetBrush("BordersImage");
+
+	float BorderSize = UKismetMathLibrary::Abs(Border[0].X - Border[1].X) ? UKismetMathLibrary::Abs(Border[0].X - Border[1].X) : UKismetMathLibrary::Abs(Border[0].Y - Border[1].Y);
+	Brush2.SetImageSize(FVector2D(BorderSize, BorderSize));
+
+	FSlateDrawElement::MakeBox(
+		OutDrawElements,
+		LayerId,
+		AllottedGeometry.ToPaintGeometry(Brush2.ImageSize * 0.f, Brush2.ImageSize),
+		&Brush2
+	);
 
 	const FVector2D PlayerPos2D = PlayerPos.Get();
 

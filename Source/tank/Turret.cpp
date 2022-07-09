@@ -15,6 +15,8 @@
 #include "tank.h"
 #include "HealthComponent.h"
 #include <DrawDebugHelpers.h>
+#include "BasicClass.h"
+#include "FrenPawn.h"
 
 // Sets default values
 ATurret::ATurret()
@@ -40,7 +42,6 @@ void ATurret::BeginPlay()
 	CannonPack.Add(GetWorld()->SpawnActor<ACannon>(DefaultCannonClass, Params));
 	CannonPack[0]->AttachToComponent(CannonSpawnPoint, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 
-	PlayerPawn = GetWorld()->GetFirstPlayerController()->GetPawn();
 
 	/*FTimerHandle _TargetingTimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(_TargetingTimerHandle, this, &ATurret::Targeting, TargetingRate, true, TargetingRate);*/
@@ -51,35 +52,63 @@ void ATurret::BeginPlay()
 
 void ATurret::Targeting()
 {
-	if (FVector::DistSquared(PlayerPawn->GetActorLocation(), GetActorLocation()) > FMath::Square(TargetingRange))
+	for (auto& i : FrenPawn::GetUnFriendly(this))
 	{
-		return;
+		if (IsTargetInRange(i.Value))
+		{
+			CurTarget = i.Value;
+			break;
+		}
 	}
-	FHitResult HitResult;
-	FVector TraceStart = TurretMesh->GetComponentLocation();
-	FVector TraceEnd = PlayerPawn->GetActorLocation();
-	FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("FireTrace")), true, this);
-	TraceParams.bReturnPhysicalMaterial = false;
 
-	if (!GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Pawn, TraceParams) || HitResult.Actor != PlayerPawn) {
-		DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Purple, false, 0.1f, 0, 5);
-		return;
+	if (CurTarget && IsTargetInRange(CurTarget))
+	{
+		RotateTo(CurTarget);
 	}
-	DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Red, false, 0.1f, 0, 5);
 
-	RotateToPlayer();
-	FVector TargetingDir = TurretMesh->GetForwardVector();
-	FVector DirToPlayer = PlayerPawn->GetActorLocation() - GetActorLocation();
-	DirToPlayer.Normalize();
-	float AimAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(TargetingDir, DirToPlayer)));
-	if (AimAngle <= Accurency) {
+	if (CurTarget && CanFire(CurTarget) && IsTargetInRange(CurTarget))
+	{
 		Fire();
 	}
 }
 
-void ATurret::RotateToPlayer()
+bool ATurret::CanFire(ABasicClass* InTarget)
 {
-	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), PlayerPawn->GetActorLocation());
+	FVector TargetingDir = TurretMesh->GetForwardVector();
+	FVector DirToPlayer = InTarget->GetActorLocation() - GetActorLocation();
+	DirToPlayer.Normalize();
+	float AimAngle = FMath::RadiansToDegrees(FMath::Acos(FVector::DotProduct(TargetingDir, DirToPlayer)));
+
+	return AimAngle <= Accuracy;
+}
+
+bool ATurret::IsTargetInRange(ABasicClass* InTarget)
+{
+	FHitResult HitResult;
+	FVector TraceStart = GetActorLocation();
+	FVector TraceEnd = InTarget->GetActorLocation();
+	FCollisionQueryParams TraceParams = FCollisionQueryParams(FName(TEXT("AI Vission Trace")), true, this);
+	TraceParams.bReturnPhysicalMaterial = false;
+
+	if (GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams))
+	{
+		DrawDebugLine(GetWorld(), TraceStart, HitResult.Location, FColor::Red, false, 0.1f, 0, 5);
+		if (HitResult.Actor != InTarget)
+		{
+			return false;
+		}
+	}
+	else
+	{
+		DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Green, false, 0.1f, 0, 5);
+	}
+
+	return FVector::DistSquared(InTarget->GetActorLocation(), GetActorLocation()) <= FMath::Square(TargetingRange);
+}
+
+void ATurret::RotateTo(ABasicClass* InTarget)
+{
+	FRotator TargetRotation = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), InTarget->GetActorLocation());
 	FRotator CurrRotation = TurretMesh->GetComponentRotation();
 	TargetRotation.Pitch = CurrRotation.Pitch;
 	TargetRotation.Roll = CurrRotation.Roll;
@@ -99,7 +128,7 @@ void ATurret::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (PlayerPawn)
+	if (FrenPawn::GetUnFriendly(this).Num())
 		Targeting();
 }
 

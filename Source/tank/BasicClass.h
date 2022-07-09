@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Pawn.h"
 #include <Components/StaticMeshComponent.h>
 #include <Components/ArrowComponent.h>
 #include "Cannon.h"
@@ -15,10 +14,12 @@
 #include <Components/Widget.h>
 #include <Components/WidgetComponent.h>
 #include "HealthBar.h"
+#include "InventoryCharacter.h"
+#include <Engine/EngineTypes.h>
 #include "BasicClass.generated.h"
 
 UCLASS()
-class TANK_API ABasicClass : public APawn, public IDamageable
+class TANK_API ABasicClass : public AInventoryCharacter, public IDamageable
 {
 	GENERATED_BODY()
 
@@ -68,18 +69,37 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BluePrintReadWrite, Category = "Turret")
 	float DestroyRate = 0.75;
 
+	class AMenuHud* TanksHud;
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Health")
 	void OnHealthChanged(float Damage);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Health")
 	void OnDie();
 
+	UPROPERTY(EditDefaultsOnly, Category = "Friendliness")
+	bool bIsFriendly = false;
+
 	void Destroying();
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Ammo Box")
 	TSubclassOf<class AAmmoBox> Ammo_Box;
 
+	bool bIsPlayer;
+
 	FTimerHandle ReloadTimerHandle;
 public:
+
+	bool bIsDead = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Friendness")
+	bool GetFriendness() {
+		return bIsFriendly;
+	}
+
+	UFUNCTION(BlueprintCallable, Category = "Friendness")
+	void SetFriendness(bool InFriendness) {
+		bIsFriendly = InFriendness;
+	}
 
 	FVector GetTurretLocation() {
 		return TurretMesh->GetComponentLocation();
@@ -89,4 +109,9 @@ public:
 	}
 	class UHealthBar* Health;
 	virtual void BeginPlay() override;
+	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
+
+	UInventoryManagerComponent* GetInventoryManager() {
+		return InventoryManager;
+	}
 };

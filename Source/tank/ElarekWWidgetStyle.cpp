@@ -30,6 +30,6 @@ void FElarekWStyle::GetResources(TArray<const FSlateBrush*>& OutBrushes) const
 {
 	Super::GetResources(OutBrushes);
 
-	CheckBoxStyle.GetResources(OutBrushes);
-	TextBlockStyle.GetResources(OutBrushes);
+	//CheckBoxStyle.GetResources(OutBrushes);
+//	TextBlockStyle.GetResources(OutBrushes);
 }

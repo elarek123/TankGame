@@ -14,8 +14,7 @@ TSharedRef<SWidget> UMiniMap::RebuildWidget()
 {
 	MiniMap = SNew(SMiniMap)
 		.PlayerPos_UObject(this, &ThisClass::GetPlayerPos)
-		.Obstacles(Obstacles)
-		.PlayerImage(PlayerImage);
+		.Obstacles(Obstacles);
 
 	return MiniMap.ToSharedRef();
 }

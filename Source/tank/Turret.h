@@ -17,11 +17,7 @@ class TANK_API ATurret : public ABasicClass
 {
 	GENERATED_BODY()
 	
-private:
 
-
-	UPROPERTY()
-	APawn* PlayerPawn;
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Targeting")
 	float TargetingRange = 1000;
@@ -30,16 +26,22 @@ protected:
 	float TargetingSpeed = 0.1f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Targeting")
-	float Accurency = 10;
+	float Accuracy = 10;
 
 
 public:
 	ATurret();
+
+	class ABasicClass* CurTarget;
+
 	virtual void Tick(float DeltaTime) override;
 protected:
 	virtual void BeginPlay() override;
 	void Targeting();
-	void RotateToPlayer();
+	bool CanFire(ABasicClass* InTarget);
+	bool IsTargetInRange(ABasicClass* InTarget);
+	void RotateTo(ABasicClass* InTarget);
+
 	void Fire();
 
 };

@@ -11,30 +11,38 @@
 #include <Styling/SlateStyle.h>
 #include <Misc/Paths.h>
 
-#define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".jpg")), __VA_ARGS__)
+#define IMAGE_BRUSH( RelativePath, ... ) FSlateImageBrush(Style->RootToContentDir(RelativePath, TEXT(".png")), __VA_ARGS__)
 
 TSharedPtr<ISlateStyle>MyCoreStyle::StylePtr;
+int MyCoreStyle::CurrentStyle;
 
-TSharedPtr<ISlateStyle>MyCoreStyle::FindStyle() {
+TSharedPtr<ISlateStyle>MyCoreStyle::FindStyle(int InStyle) {
 
 
 	FString Path = FPaths::ProjectContentDir() / TEXT("/UI");
-
 	TSharedPtr<FSlateStyleSet> Style = FSlateGameResources::New(FName("MyCoreStyle"), Path, Path);
 
-	Style->Set("Red", FLinearColor::Red);
-	Style->Set("DefaultPadding", FMargin(5));
-	Style->Set("frog", new IMAGE_BRUSH("frog", FVector2D(256)));
-
+	if (!InStyle)
+	{
+		Style->Set("Background", FLinearColor::Yellow);
+		Style->Set("PlayerImage", new IMAGE_BRUSH("OrdinaryPlayerImage", FVector2D(64.f)));
+		Style->Set("BordersImage", new IMAGE_BRUSH("OrdinaryBordersImage", FVector2D(256.f)));
+	}
+	else
+	{
+		Style->Set("Background", FLinearColor::Gray);
+		Style->Set("PlayerImage", new IMAGE_BRUSH("BlackWhitePlayerImage", FVector2D(64.f)));
+		Style->Set("BordersImage", new IMAGE_BRUSH("BlackWhiteBordersImage", FVector2D(256.f)));
+	}
 	return Style;
 }
 
 #undef IMAGE_BRUSH
 
-void MyCoreStyle::Initialize()
+void MyCoreStyle::Initialize(int InStyle)
 {
 	ShutDown();
-	StylePtr = FindStyle();
+	StylePtr = FindStyle(InStyle);
 	FSlateStyleRegistry::RegisterSlateStyle(*StylePtr);
 }
 
@@ -46,10 +54,16 @@ void MyCoreStyle::ShutDown()
 	}
 }
 
+void MyCoreStyle::ChangeStyle(int InStyle)
+{
+	CurrentStyle = InStyle;
+	Initialize(InStyle);
+}
+
 const ISlateStyle& MyCoreStyle::Get()
 {
 	if (!StylePtr.IsValid()) {
-		Initialize();
+		Initialize(CurrentStyle);
 	}
 
 	return *StylePtr;

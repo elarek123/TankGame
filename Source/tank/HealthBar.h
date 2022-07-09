@@ -7,6 +7,8 @@
 //#include "BasicClass.h"
 #include <Components/ProgressBar.h>
 #include "HealthComponent.h"
+#include "WHealthBarWidgetStyle.h"
+#include <Widgets/SWidget.h>
 #include "HealthBar.generated.h"
 
 /**
@@ -18,6 +20,10 @@ class TANK_API UHealthBar : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativePreConstruct() override;
+
+	UPROPERTY(EditAnywhere, Category = Appearance, Meta = (DisplayName = Style))
+		FWHealthBarStyle WidgetStyle;
 	UHealthComponent* Health;
 	void SetHealthComponent(UHealthComponent* HealthComponent) {
 		Health = HealthComponent;
@@ -27,6 +33,8 @@ public:
 protected:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	class UProgressBar* HealthBar;
+
+	
 
 
 

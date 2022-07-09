@@ -11,14 +11,22 @@
 class TANK_API MyCoreStyle
 {
 public:
-	static void Initialize();
+	static void Initialize(int InStyle);
 
 	static void ShutDown();
 
+	static void ChangeStyle(int InStyle);
+
+	static int GetStatus() {
+		return CurrentStyle;
+	}
+
 	static const ISlateStyle& Get();
 
-	static TSharedPtr<ISlateStyle>FindStyle();
+	static TSharedPtr<ISlateStyle>FindStyle(int InStyle);
 
-private:
+protected:
+	static int CurrentStyle;
+
 	static TSharedPtr<ISlateStyle> StylePtr;
 };

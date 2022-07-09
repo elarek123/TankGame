@@ -11,12 +11,15 @@
 #include "HealthComponent.h"
 #include <GameFramework/Actor.h>
 #include <Components/ArrowComponent.h>
+#include "FrenPawn.h"
+#include "MenuHud.h"
 
 // Sets default values
 ABasicClass::ABasicClass()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 
 
 	BodyMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Body"));
@@ -38,7 +41,7 @@ ABasicClass::ABasicClass()
 	HealthBar = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
 	HealthBar->SetupAttachment(BodyMesh);
 
-
+	
 	
 	//RootComponent = Widget;
 }
@@ -55,6 +58,9 @@ void ABasicClass::OnHealthChanged_Implementation(float Damage)
 }
 void ABasicClass::OnDie_Implementation()
 {
+	if (bIsDead)
+		return;
+	bIsDead = true;
 	DestroyEffect->Activate();
 	AudioDestroyEffect->Play();
 
@@ -81,9 +87,28 @@ void ABasicClass::Destroying()
 void ABasicClass::BeginPlay()
 {
 	Super::BeginPlay();
+	bIsPlayer = GetController() == GetWorld()->GetFirstPlayerController();
 	Health = Cast<UHealthBar>(HealthBar->GetWidget());
+
 	if(Health)
 		Health->SetHealthComponent(HealthComponent);
+
+	SetFriendness(GetWorld()->GetFirstPlayerController()->GetPawn() == this);
+	if (bIsPlayer)
+	{
+		TanksHud = Cast<AMenuHud>(GetWorld()->GetFirstPlayerController()->GetHUD());
+	}
+
+	FrenPawn::AddPawn(this);
+}
+
+
+void ABasicClass::EndPlay(EEndPlayReason::Type EndPlayReason)
+{
+	FrenPawn::DelPawn(this);
+	if (bIsPlayer) {
+		TanksHud->ShowWindow(EWidgetID::GameOver);
+	}
 }
 
 void ABasicClass::TakeDamage(const FDamageData& DamageData)

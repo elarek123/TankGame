@@ -18,9 +18,6 @@ public:
 	virtual void ReleaseSlateResources(bool bReleaseChildren) override;
 
 	UPROPERTY(EditAnywhere, Category = Appearance)
-	UTexture2D* PlayerImage;
-
-	UPROPERTY(EditAnywhere, Category = Appearance)
 	TArray<FBox2D> Obstacles;
 
 	UPROPERTY(EditAnywhere, Category = Appearance)

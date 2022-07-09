@@ -2,11 +2,21 @@
 
 
 #include "HealthBar.h"
+#include "MyCoreStyle.h"
 
 
 
 
 
+
+
+
+void UHealthBar::NativePreConstruct()
+{
+	if (HealthBar) {
+		HealthBar->FillColorAndOpacity = MyCoreStyle::Get().GetColor("Green");
+	}
+}
 
 void UHealthBar::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
